@@ -46,6 +46,7 @@ config TCPC_MT6362
 	tristate "MT6362 SPMI TCPC driver"
 	depends on TCPC_CLASS
 	depends on MFD_MT6362
+	select TCPC_ALERT_V20
 	help
 	  Say yes here to have support for the MT6362 TCPC
 	  Support TypeC port Controller and Power Delivery
@@ -59,6 +60,16 @@ config TCPC_MT6370
 	default n
 	help
 	  Say Y to enable MediaTek MT6370
+	  TypeC port Controller
+	  Also Support Power Delivery
+	  Say N to disable
+
+config TCPC_WUSB3801
+	bool "MediaTek WUSB3801 TypeC port Controller Driver"
+	depends on TCPC_CLASS
+	default n
+	help
+	  Say Y to enable WUSB3801
 	  TypeC port Controller
 	  Also Support Power Delivery
 	  Say N to disable

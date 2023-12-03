@@ -22,6 +22,7 @@
 #include <linux/notifier.h>
 #include <linux/semaphore.h>
 #include <linux/spinlock.h>
+#include <linux/usb/typec.h>
 
 #include "tcpm.h"
 #include "tcpci_timer.h"
@@ -29,9 +30,9 @@
 
 #ifdef CONFIG_USB_POWER_DELIVERY
 #include "pd_core.h"
-#ifdef CONFIG_USB_PD_WAIT_BC12
+#ifdef CONFIG_TYPEC_WAIT_BC12
 #include <mt-plat/charger_type.h>
-#endif /* CONFIG_USB_PD_WAIT_BC12 */
+#endif /* CONFIG_TYPEC_WAIT_BC12 */
 #endif
 
 /* The switch of log message */
@@ -40,17 +41,17 @@
 #define PE_EVENT_DBG_ENABLE	1
 #define PE_STATE_INFO_ENABLE	1
 #define TCPC_INFO_ENABLE	1
-#define TCPC_TIMER_DBG_EN	0
-#define TCPC_TIMER_INFO_EN	0
+#define TCPC_TIMER_DBG_EN	1
+#define TCPC_TIMER_INFO_EN	1	
 #define PE_INFO_ENABLE		1
-#define TCPC_DBG_ENABLE		0
-#define TCPC_DBG2_ENABLE	0
+#define TCPC_DBG_ENABLE		1
+#define TCPC_DBG2_ENABLE	1	
 #define DPM_INFO_ENABLE		1
 #define DPM_INFO2_ENABLE	1
-#define DPM_DBG_ENABLE		0
+#define DPM_DBG_ENABLE		1	
 #define PD_ERR_ENABLE		1
-#define PE_DBG_ENABLE		0
-#define TYPEC_DBG_ENABLE	0
+#define PE_DBG_ENABLE		1
+#define TYPEC_DBG_ENABLE	1	
 
 
 #define DP_INFO_ENABLE		1
@@ -120,6 +121,11 @@ struct tcpc_desc {
 #define CONFIG_TCPC_EXT_DISCHARGE
 #endif	/* CONFIG_TCPC_FORCE_DISCHARGE_EXT */
 
+#ifdef CONFIG_TCPC_AUTO_DISCHARGE_EXT
+#undef CONFIG_TCPC_EXT_DISCHARGE
+#define CONFIG_TCPC_EXT_DISCHARGE
+#endif	/* CONFIG_TCPC_AUTO_DISCHARGE_EXT */
+
 /*---------------------------------------------------------------------------*/
 
 /* TCPC Power Register Define */
@@ -177,32 +183,23 @@ struct tcpc_desc {
 #define TCPC_FLAGS_VCONN_SAFE5V_ONLY		(1<<11)
 #define TCPC_FLAGS_ALERT_V10			(1<<12)
 
-#define TYPEC_CC_PULL(rp_lvl, res)	((rp_lvl & 0x03) << 3 | (res & 0x07))
-
-enum tcpc_rp_lvl {
-	TYPEC_RP_DFT,
-	TYPEC_RP_1_5,
-	TYPEC_RP_3_0,
-	TYPEC_RP_RSV,
-};
-
 enum tcpc_cc_pull {
 	TYPEC_CC_RA = 0,
 	TYPEC_CC_RP = 1,
 	TYPEC_CC_RD = 2,
 	TYPEC_CC_OPEN = 3,
-	TYPEC_CC_DRP = 4,		/* from Rd */
+	TYPEC_CC_DRP = 4,	/* from Rd */
 
-	TYPEC_CC_RP_DFT = TYPEC_CC_PULL(TYPEC_RP_DFT, TYPEC_CC_RP),
-	TYPEC_CC_RP_1_5 = TYPEC_CC_PULL(TYPEC_RP_1_5, TYPEC_CC_RP),
-	TYPEC_CC_RP_3_0 = TYPEC_CC_PULL(TYPEC_RP_3_0, TYPEC_CC_RP),
+	TYPEC_CC_RP_DFT = 1,		/* 0x00 + 1 */
+	TYPEC_CC_RP_1_5 = 9,		/* 0x08 + 1*/
+	TYPEC_CC_RP_3_0 = 17,		/* 0x10 + 1 */
 
-	TYPEC_CC_DRP_DFT = TYPEC_CC_PULL(TYPEC_RP_DFT, TYPEC_CC_DRP),
-	TYPEC_CC_DRP_1_5 = TYPEC_CC_PULL(TYPEC_RP_1_5, TYPEC_CC_DRP),
-	TYPEC_CC_DRP_3_0 = TYPEC_CC_PULL(TYPEC_RP_3_0, TYPEC_CC_DRP),
+	TYPEC_CC_DRP_DFT = 4,		/* 0x00 + 4 */
+	TYPEC_CC_DRP_1_5 = 12,		/* 0x08 + 4 */
+	TYPEC_CC_DRP_3_0 = 20,		/* 0x10 + 4 */
 };
 
-#define TYPEC_CC_PULL_GET_RES(pull)	(pull & 0x07)
+#define TYPEC_CC_PULL_GET_RES(pull)		(pull & 0x07)
 #define TYPEC_CC_PULL_GET_RP_LVL(pull)	((pull & 0x18) >> 3)
 
 enum tcpm_rx_cap_type {
@@ -227,6 +224,8 @@ struct tcpc_ops {
 	int (*get_fault_status)(struct tcpc_device *tcpc, uint8_t *status);
 	int (*get_cc)(struct tcpc_device *tcpc, int *cc1, int *cc2);
 	int (*set_cc)(struct tcpc_device *tcpc, int pull);
+	int (*set_role)(struct tcpc_device *tcpc, int status);
+	int (*get_mode)(struct tcpc_device *tcpc, int *typec_mode);
 	int (*set_polarity)(struct tcpc_device *tcpc, int polarity);
 	int (*set_low_rp_duty)(struct tcpc_device *tcpc, bool low_rp);
 	int (*set_vconn)(struct tcpc_device *tcpc, int enable);
@@ -247,7 +246,11 @@ struct tcpc_ops {
 	int (*is_low_power_mode)(struct tcpc_device *tcpc);
 	int (*set_low_power_mode)(struct tcpc_device *tcpc, bool en, int pull);
 #endif /* CONFIG_TCPC_LOW_POWER_MODE */
-
+/*K19A HQ-135321 K19A for VtsHalUsbV1_0TargetTest fail by langjunjun at 2021/6/6 start*/
+#ifdef CONFIG_TCPC_IDLE_MODE
+	int (*set_idle_mode)(struct tcpc_device *tcpc, bool en);
+#endif /* CONFIG_TCPC_IDLE_MODE */
+/*K19A HQ-135321 K19A for VtsHalUsbV1_0TargetTest fail by langjunjun at 2021/6/6 end*/
 	int (*set_watchdog)(struct tcpc_device *tcpc, bool en);
 
 #ifdef CONFIG_TCPC_INTRST_EN
@@ -322,8 +325,8 @@ struct tcpc_device {
 	struct device dev;
 	bool wake_lock_user;
 	uint8_t wake_lock_pd;
-	struct wakeup_source *attach_wake_lock;
-	struct wakeup_source *detach_wake_lock;
+	struct wakeup_source attach_wake_lock;
+	struct wakeup_source dettach_temp_wake_lock;
 
 	/* For tcpc timer & event */
 	uint32_t timer_handle_index;
@@ -331,7 +334,7 @@ struct tcpc_device {
 
 	struct alarm wake_up_timer;
 	struct delayed_work wake_up_work;
-	struct wakeup_source *wakeup_wake_lock;
+	struct wakeup_source wakeup_wake_lock;
 
 	ktime_t last_expire[PD_TIMER_NR];
 	struct mutex access_lock;
@@ -342,10 +345,12 @@ struct tcpc_device {
 	atomic_t pending_event;
 	uint64_t timer_tick;
 	uint64_t timer_enable_mask;
-	wait_queue_head_t event_wait_que;
-	wait_queue_head_t timer_wait_que;
+	wait_queue_head_t event_loop_wait_que;
+	wait_queue_head_t  timer_wait_que;
 	struct task_struct *event_task;
 	struct task_struct *timer_task;
+	bool timer_thead_stop;
+	bool event_loop_thead_stop;
 
 	struct delayed_work	init_work;
 	struct delayed_work	event_init_work;
@@ -423,6 +428,23 @@ struct tcpc_device {
 
 	uint32_t tcpc_flags;
 
+	struct typec_capability typec_caps;
+	struct typec_port *typec_port;
+/*K19A HQ-135321 K19A for VtsHalUsbV1_0TargetTest fail by langjunjun at 2021/6/6 start*/
+#ifdef CONFIG_DUAL_ROLE_USB_INTF
+	struct dual_role_phy_instance *dr_usb;
+	uint8_t dual_role_supported_modes;
+	uint8_t dual_role_mode;
+	uint8_t dual_role_pr;
+	uint8_t dual_role_dr;
+	uint8_t dual_role_vconn;
+#endif /* CONFIG_DUAL_ROLE_USB_INTF */
+/*K19A HQ-135321 K19A for VtsHalUsbV1_0TargetTest fail by langjunjun at 2021/6/6 end*/
+	struct usb_pd_identity partner_ident;
+	struct typec_partner_desc partner_desc;
+	struct typec_partner *partner;
+	bool pd_capable;
+
 #ifdef CONFIG_USB_POWER_DELIVERY
 	/* Event */
 	uint8_t pd_event_count;
@@ -488,9 +510,9 @@ struct tcpc_device {
 	uint8_t charging_status;
 	int bat_soc;
 #endif /* CONFIG_USB_PD_REV30 */
-#ifdef CONFIG_USB_PD_WAIT_BC12
-	uint8_t pd_wait_bc12_count;
-#endif /* CONFIG_USB_PD_WAIT_BC12 */
+#ifdef CONFIG_TYPEC_WAIT_BC12
+	uint8_t sink_wait_bc12_count;
+#endif /* CONFIG_TYPEC_WAIT_BC12 */
 #endif /* CONFIG_USB_POWER_DELIVERY */
 	u8 vbus_level:2;
 	bool vbus_safe0v;
