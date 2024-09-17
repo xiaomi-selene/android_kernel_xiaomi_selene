@@ -4648,7 +4648,7 @@ static void otg_boost_limit_work(struct work_struct *work)
 	}
 	if (otg_limit == 1) {
 		pr_err("phone is to high skip batterty otg boost check\n");
-		schedule_delayed_work(&otg_boost_current_work, msecs_to_jiffies(5000));
+		queue_delayed_work(system_power_efficient_wq, &otg_boost_current_work, msecs_to_jiffies(10000));
 		return;
 	}
 
@@ -4672,7 +4672,7 @@ static void otg_boost_limit_work(struct work_struct *work)
 		charger_dev_set_otg_current(primary_charger, 1000000);
 		otg_ibat_limit = 1;
 	}
-	schedule_delayed_work(&otg_boost_current_work, msecs_to_jiffies(5000));
+	queue_delayed_work(system_power_efficient_wq, &otg_boost_current_work, msecs_to_jiffies(10000));
 }
 
 
@@ -4718,7 +4718,7 @@ static int __init battery_probe(struct platform_device *dev)
 
 	mtk_battery_init(dev);
 	INIT_DELAYED_WORK(&otg_boost_current_work, otg_boost_limit_work);
-	schedule_delayed_work(&otg_boost_current_work, msecs_to_jiffies(10000));
+	queue_delayed_work(system_power_efficient_wq, &otg_boost_current_work, msecs_to_jiffies(10000));
 	/* Power supply class */
 #if !defined(CONFIG_MTK_DISABLE_GAUGE)
 	battery_main.psy =
