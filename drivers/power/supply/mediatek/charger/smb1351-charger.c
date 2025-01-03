@@ -2281,7 +2281,9 @@ static int smb1351_set_usbchg_current(struct charger_device *chg_dev, u32 uA)
 	u8 reg = 0, mask = 0;
 	u32 current_ma = uA / 1000;
 
+#ifdef CONFIG_MTK_ENG_BUILD
 	pr_err("USB current_ma = %d\n", current_ma);
+#endif
 
 	if (chip->chg_autonomous_mode) {
 		pr_debug("Charger in autonomous mode\n");
@@ -2382,12 +2384,16 @@ static int smb1351_set_fastchg_current(struct charger_device *chg_dev, u32 uA)
 
 	chip->chg_current_set = uA / 1000;
 
+#ifdef CONFIG_MTK_ENG_BUILD
 	pr_err("fastchg current mA=%d \n", chip->chg_current_set);
+#endif
 
 	if ((chip->chg_current_set < SMB1351_CHG_PRE_MIN_MA) ||
 		(chip->chg_current_set > SMB1351_CHG_FAST_MAX_MA)) {
+#ifdef CONFIG_MTK_ENG_BUILD
 		pr_err("bad pre_fastchg current mA=%d asked to set\n",
 					chip->chg_current_set);
+#endif
 		return -EINVAL;
 	}
 
