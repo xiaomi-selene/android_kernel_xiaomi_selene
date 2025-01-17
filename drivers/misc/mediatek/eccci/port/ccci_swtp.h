@@ -14,12 +14,16 @@
 #ifndef __SWTP_H__
 #define __SWTP_H__
 
-/* modify MAX_PIN_NUM/DTS to support more gpio,
- * need to follow SOP for customization.
- */
-#define MAX_PIN_NUM 2
+/* Huaqin add for HQ-123513 by liunianliang at 2021/04/25 start */
+#define MAX_PIN_NUM 1
+/* Huaqin add for HQ-123513 by liunianliang at 2021/04/25 end */
+
 #define SWTP_COMPATIBLE_DEVICE_ID "mediatek, swtp-eint"
+
+/* Huaqin add for HQ-123513 by liunianliang at 2021/04/25 start */
 #define SWTP1_COMPATIBLE_DEVICE_ID "mediatek, swtp1-eint"
+//#define SWTP_COMPATIBLE_DEVICE_ID "mediatek, swtp-eint"
+/* Huaqin add for HQ-123513 by liunianliang at 2021/04/25 end */
 
 
 #define SWTP_EINT_PIN_PLUG_IN	(1)
@@ -28,9 +32,12 @@
 #define SWTP_DO_TX_POWER	(0)
 #define SWTP_NO_TX_POWER	(1)
 
+/* Huaqin modify for HQ-123513 by liunianliang at 2021/04/25 start */
+#define SWTP_DO_TX_POWER	(0)
+#define SWTP_NO_TX_POWER	(1)
+
 struct swtp_t {
 	unsigned int	md_id;
-	unsigned int	curr_mode;
 	unsigned int	irq[MAX_PIN_NUM];
 	unsigned int	gpiopin[MAX_PIN_NUM];
 	unsigned int	setdebounce[MAX_PIN_NUM];
@@ -41,10 +48,26 @@ struct swtp_t {
 	struct delayed_work delayed_work;
 	struct delayed_work init_delayed_work;
 };
+
+/*
+struct swtp_t {
+	unsigned int	md_id;
+	unsigned int	irq;
+	unsigned int	gpiopin;
+	unsigned int	setdebounce;
+	unsigned int	eint_type;
+	unsigned int	curr_mode;
+	unsigned int	retry_cnt;
+	spinlock_t		spinlock;
+	struct delayed_work delayed_work;
+    struct delayed_work delayed_work_swtp;
+};
+*/
 /*****************************************************************************/
 /* External API Region called by ccci_swtp object */
 /*****************************************************************************/
-extern void inject_pin_status_event(int pin_value, const char pin_name[]);
+//extern int ccci_md_get_state_by_id(int md_id);
+/* Huaqin modify for HQ-123513 by liunianliang at 2021/04/25 end */
 extern int swtp_init(int md_id);
 extern void inject_pin_status_event(int pin_value, const char pin_name[]);
 #endif				/* __SWTP_H__ */
