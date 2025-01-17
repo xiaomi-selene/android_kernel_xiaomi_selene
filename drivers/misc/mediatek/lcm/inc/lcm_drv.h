@@ -391,8 +391,9 @@ struct LCM_DSC_CONFIG_PARAMS {
 	unsigned int bit_per_channel;
 	unsigned int rct_on;
 	unsigned int bp_enable;
-	unsigned int pic_height;/* need to check */
-	unsigned int pic_width;/* need to check */
+
+	unsigned int pic_height; /* need to check */
+	unsigned int pic_width;  /* need to check */
 	unsigned int slice_height;
 	unsigned int chunk_size;
 	unsigned int dec_delay;
@@ -1020,6 +1021,7 @@ struct LCM_DRIVER {
 	void (*set_pwm)(unsigned int divider);
 	unsigned int (*get_pwm)(unsigned int divider);
 	void (*set_backlight_mode)(unsigned int mode);
+	void (*set_hw_info)(void);
 	/* ///////////////////////// */
 
 	int (*adjust_fps)(void *cmdq, int fps, struct LCM_PARAMS *params);
