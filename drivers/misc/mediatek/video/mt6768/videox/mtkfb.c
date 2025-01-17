@@ -180,6 +180,9 @@ unsigned int ext_lcd_fps = 6000;
 char ext_mtkfb_lcm_name[256] = { 0 };
 #endif
 
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 start */
+extern real_refresh;
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 end */
 DEFINE_SEMAPHORE(sem_flipping);
 DEFINE_SEMAPHORE(sem_early_suspend);
 DEFINE_SEMAPHORE(sem_overlay_buffer);
@@ -341,38 +344,41 @@ static int __init mtkfb_get_white_point(char *p)
 	lcd_merlin_para.white_point_y = (wpoint[3]-'0') * 100
 		+ (wpoint[4]-'0') * 10 + (wpoint[5]-'0');
 
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 start */
+	lcd_merlin_para.white_point_l = (wpoint[6]-'0') * 100
+		+ (wpoint[7]-'0') * 10 + (wpoint[8]-'0');
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 end */
 	return 0;
 }
 
 early_param("ro.boot.lcm_white_point", mtkfb_get_white_point);
-
-static int mtkfb_set_rgb_point_init(void)
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 start */
+static ssize_t mtkfb_get_wpoint_level(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	if (strncmp(mtkfb_lcm_name, "nt36672A_fhdp_dsi_vdo_tianma_lcm_drv", 36) == 0) {
-		lcd_merlin_para.white_point_r = 656335;
-		lcd_merlin_para.white_point_g = 299652;
-		lcd_merlin_para.white_point_b = 154054;
-		return 0;
-	} else if (strncmp(mtkfb_lcm_name, "ft8719_fhdp_dsi_vdo_xinli_lcm_drv", 33) == 0) {
-		lcd_merlin_para.white_point_r = 657335;
-		lcd_merlin_para.white_point_g = 297657;
-		lcd_merlin_para.white_point_b = 155044;
-		return 0;
-	} else if (strncmp(mtkfb_lcm_name, "nt36672A_fhdp_dsi_vdo_tianma_j19_lcm_drv", 40) == 0) {
-		lcd_merlin_para.white_point_r = 630345;
-		lcd_merlin_para.white_point_g = 319603;
-		lcd_merlin_para.white_point_b = 151053;
-		return 0;
-	} else if (strncmp(mtkfb_lcm_name, "ft8719_fhdp_dsi_vdo_huaxing_j19_lcm_drv", 39) == 0) {
-		lcd_merlin_para.white_point_r = 644335;
-		lcd_merlin_para.white_point_g = 306613;
-		lcd_merlin_para.white_point_b = 154062;
-		return 0;
-	} else {
-		return -1;
-	}
+	int ret;
+	ret = scnprintf(buf, PAGE_SIZE, "%3d\n", lcd_merlin_para.white_point_l);
+	return ret;
 }
 
+static ssize_t mtkfb_set_wpoint_level(struct device *dev, struct device_attribute *attr, const char *buf, size_t len)
+{
+	sscanf(buf, "%3d", &lcd_merlin_para.white_point_l);
+	return len;
+}
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 end */
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 start */
+static ssize_t mtkfb_get_refresh(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int ret;
+	ret = scnprintf(buf, PAGE_SIZE, "%3d\n", real_refresh);
+	return ret;
+}
+static ssize_t mtkfb_set_refresh(struct device *dev, struct device_attribute *attr, const char *buf, size_t len)
+{
+		sscanf(buf, "%3d", &real_refresh);
+		return len;
+}
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 end */
 static ssize_t mtkfb_get_hbm(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	int ret;
@@ -471,23 +477,9 @@ static ssize_t mtkfb_set_bpoint(struct device *dev, struct device_attribute *att
 
 static ssize_t mtkfb_get_panel_info(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	int ret;
-
-	if (strncmp(mtkfb_lcm_name, "nt36672A_fhdp_dsi_vdo_tianma_lcm_drv", 36) == 0) {
-		ret = sprintf(buf, "incell,vendor:tianma,IC:nt36672a(novatek)\n");
-	} else if (strncmp(mtkfb_lcm_name, "ft8719_fhdp_dsi_vdo_xinli_lcm_drv", 33) == 0) {
-		ret = sprintf(buf, "incell,vendor:truly,IC:ft8719(focaltech)\n");
-	} else if (strncmp(mtkfb_lcm_name, "nt36672A_fhdp_dsi_vdo_tianma_j19_lcm_drv", 40) == 0) {
-		ret = sprintf(buf, "incell,vendor:tianma,IC:nt36672(novatek)\n");
-	} else if (strncmp(mtkfb_lcm_name, "ft8719_fhdp_dsi_vdo_huaxing_j19_lcm_drv", 39) == 0) {
-		ret = sprintf(buf, "incell,vendor:huaxing,IC:ft8719(focaltech)\n");
-	} else if (strncmp(mtkfb_lcm_name, "nt36672A_fhdp_dsi_vdo_dijing_j19_lcm_drv", 40) == 0) {
-		ret = sprintf(buf, "incell,vendor:Dijing,IC:nt36672(novatek)\n");
-	} else if (strncmp(mtkfb_lcm_name, "nt36672D_fhdp_dsi_vdo_dijing_j19_lcm_drv", 40) == 0) {
-		ret = sprintf(buf, "incell,vendor:Dijing,IC:nt36672(novatek)\n");
-	} else if (strncmp(mtkfb_lcm_name, "nt36672D_fhdp_dsi_vdo_tianma_lcm_drv", 36) == 0) {
-		ret = sprintf(buf, "incell,vendor:tianma,IC:nt36672D(novatek)\n");
-	}
+	/* Huaqin modify for HQ-140354 by liunianliang at 2021/06/15 start */
+	int ret = 0;
+	/* Huaqin modify for HQ-140354 by liunianliang at 2021/06/15 end */
 
 	return ret;
 }
@@ -498,6 +490,10 @@ static DEVICE_ATTR(mtkfb_disprpoint, 0644, mtkfb_get_rpoint, mtkfb_set_rpoint);
 static DEVICE_ATTR(mtkfb_dispgpoint, 0644, mtkfb_get_gpoint, mtkfb_set_gpoint);
 static DEVICE_ATTR(mtkfb_dispbpoint, 0644, mtkfb_get_bpoint, mtkfb_set_bpoint);
 static DEVICE_ATTR(panel_info, 0644, mtkfb_get_panel_info, NULL);
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 start */
+static DEVICE_ATTR(mtkfb_dispwpoint_level, 0644, mtkfb_get_wpoint_level, mtkfb_set_wpoint_level);
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 start */
+static DEVICE_ATTR(mtkfb_fps, 0644, mtkfb_get_refresh, mtkfb_set_refresh);
 
 static struct attribute *mtk_fb_attrs[] = {
 	&dev_attr_mtk_fb_hbm.attr,
@@ -506,9 +502,12 @@ static struct attribute *mtk_fb_attrs[] = {
 	&dev_attr_mtkfb_dispgpoint.attr,
 	&dev_attr_mtkfb_dispbpoint.attr,
 	&dev_attr_panel_info.attr,
+	&dev_attr_mtkfb_dispwpoint_level.attr,
+	&dev_attr_mtkfb_fps.attr,
 	NULL,
 };
-
+/* Huaqin modify for HQ-141505 by caogaojie at 2021/06/18 end */
+/* Huaqin modify for HQ-126356 by caogaojie at 2021/05/06 end */
 static struct attribute_group mtk_fb_attr_group = {
 	.attrs = mtk_fb_attrs,
 };
@@ -2998,11 +2997,6 @@ static int mtkfb_probe(struct platform_device *pdev)
 	}
 
 #ifdef CONFIG_LM3697_SUPPORT
-	r = mtkfb_set_rgb_point_init();
-	if (r) {
-		pr_err("[%s]: set rgb point fail\n", __func__);
-	}
-
 	r = sysfs_create_group(&fbi->dev->kobj, &mtk_fb_attr_group);
 	if (r)
 		pr_err("sysfs group creat failed, rc = %d\n", r);
