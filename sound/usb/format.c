@@ -328,13 +328,6 @@ static int parse_uac2_sample_rate_range(struct snd_usb_audio *chip,
 		}
 
 		for (rate = min; rate <= max; rate += res) {
-<<<<<<< HEAD
-			/* AudioBox 22 VSL */
-			if (rate > 48000 &&
-			    chip->usb_id == USB_ID(0x194f, 0x0101))
-				break;
-
-=======
 
 		/*K19S  code for HQ-161345 by zhangbing at 2021.11.03 start*/
                if(chip->usb_id == USB_ID(0x12D1, 0x3A07)) {
@@ -348,7 +341,6 @@ static int parse_uac2_sample_rate_range(struct snd_usb_audio *chip,
                }
               }
 		/*K19S  code for HQ-161345 by zhangbing at 2021.11.03 end */
->>>>>>> c1383fc3536b (sound/usb: import OEM changes)
 			/* Filter out invalid rates on Focusrite devices */
 			if (USB_ID_VENDOR(chip->usb_id) == 0x1235 &&
 			    !focusrite_valid_sample_rate(chip, fp, rate))
