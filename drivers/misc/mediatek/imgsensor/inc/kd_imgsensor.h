@@ -220,7 +220,6 @@
 #define OV2650_SENSOR_ID_3                      0x2655
 #define OV20880MIPI_SENSOR_ID                   0x20880
 
-#define OV13B10_SENSOR_ID                       0x560D42
 #define OV13B10_SUNNY_SENSOR_ID                 0x560D43
 #define OV13B10_SENSOR_INDIA_ID                       0x560D46
 #define OV13B10_SUNNY_SENSOR_INDIA_ID                 0x560D47
