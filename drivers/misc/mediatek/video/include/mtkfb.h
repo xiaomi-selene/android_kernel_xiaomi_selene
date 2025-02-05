@@ -190,15 +190,6 @@ struct fb_update_window {
 	unsigned int width, height;
 };
 
-struct fb_lcd_merlin_para {
-	int white_point_x;
-	int white_point_y;
-	u32 white_point_r;
-	u32 white_point_g;
-	u32 white_point_b;
-
-};
-
 enum MTK_FB_LAYER_TYPE {
 	LAYER_2D = 0,
 	LAYER_3D_SBS_0 = 0x1,
