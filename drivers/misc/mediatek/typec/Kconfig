@@ -47,7 +47,6 @@ config TCPC_MT6360
 	  Also Support Power Delivery
 	  Say N to disable
 
-
 config MTK_TYPEC_WATER_DETECT
 	bool "Water detection function for type-c connector"
 	depends on TCPC_CLASS

@@ -711,6 +711,11 @@ static int pd_tcp_notifier_call(struct notifier_block *pnb,
 		return 0;
 	}
 	switch (event) {
+	case TCP_NOTIFY_SINK_VBUS:
+		if (tcpm_inquire_typec_attach_state(cti->tcpc_dev) ==
+						   TYPEC_ATTACHED_AUDIO)
+			plug_in_out_handler(cti, !!noti->vbus_state.mv, true);
+		break;
 	case TCP_NOTIFY_TYPEC_STATE:
 		if (noti->typec_state.old_state == TYPEC_UNATTACHED &&
 		    (noti->typec_state.new_state == TYPEC_ATTACHED_SNK ||
