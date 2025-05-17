@@ -42,13 +42,15 @@ signed int battery_get_uisoc(void)
 {
 	int boot_mode = get_boot_mode();
 
-	if ((boot_mode == META_BOOT) ||
-		(boot_mode == ADVMETA_BOOT) ||
-		(boot_mode == FACTORY_BOOT) ||
-		(boot_mode == ATE_FACTORY_BOOT))
-		return 75;
-
-	return 50;
+	switch (boot_mode) {
+		case META_BOOT:
+		case ADVMETA_BOOT:
+		case FACTORY_BOOT:
+		case ATE_FACTORY_BOOT:
+			return 75;
+		default:
+			return 50;
+	}
 }
 
 signed int battery_get_bat_temperature(void)
@@ -105,16 +107,18 @@ signed int battery_get_uisoc(void)
 {
 	int boot_mode = get_boot_mode();
 
-	if ((boot_mode == META_BOOT) ||
-		(boot_mode == ADVMETA_BOOT) ||
-		(boot_mode == FACTORY_BOOT) ||
-		(boot_mode == ATE_FACTORY_BOOT))
-		return 75;
-
-	if (get_mtk_battery() != NULL)
-		return get_mtk_battery()->ui_soc;
-	else
-		return 50;
+	switch (boot_mode) {
+		case META_BOOT:
+		case ADVMETA_BOOT:
+		case FACTORY_BOOT:
+		case ATE_FACTORY_BOOT:
+			return 75;
+		default:
+		if (get_mtk_battery() != NULL)
+			return get_mtk_battery()->ui_soc;
+		else
+			return 50;
+	}
 }
 
 signed int battery_get_bat_temperature(void)
