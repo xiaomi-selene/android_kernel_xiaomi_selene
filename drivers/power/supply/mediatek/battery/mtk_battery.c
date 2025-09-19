@@ -147,8 +147,6 @@ static enum power_supply_property battery_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT,
 	POWER_SUPPLY_PROP_BATT_ID,
 	POWER_SUPPLY_PROP_BATTERY_TYPE,
-	POWER_SUPPLY_PROP_CAPACITY_LEVEL,
-	POWER_SUPPLY_PROP_TIME_TO_FULL_NOW,
 	POWER_SUPPLY_PROP_BATTERY_VENDOR,
     POWER_SUPPLY_PROP_CHARGING_ENABLED,
     POWER_SUPPLY_PROP_BATTERY_ID_VOLTAGE,
@@ -528,22 +526,6 @@ struct bms_data bms_main = {
 	},
 };
 
-int check_cap_level(int uisoc)
-{
-	if (uisoc >= 100)
-		return POWER_SUPPLY_CAPACITY_LEVEL_FULL;
-	else if (uisoc >= 80 && uisoc < 100)
-		return POWER_SUPPLY_CAPACITY_LEVEL_HIGH;
-	else if (uisoc >= 20 && uisoc < 80)
-		return POWER_SUPPLY_CAPACITY_LEVEL_NORMAL;
-	else if (uisoc > 0 && uisoc < 20)
-		return POWER_SUPPLY_CAPACITY_LEVEL_LOW;
-	else if (uisoc == 0)
-		return POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL;
-	else
-		return POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN;
-}
-
 void battery_update_psd(struct battery_data *bat_data)
 {
 	bat_data->BAT_batt_vol = battery_get_bat_voltage();
@@ -698,32 +680,6 @@ static int battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_HIZ_ENABLE:
 	/*K19A-75 charge by wangchao at 2021/4/15 end*/
 		val->intval = charger_manager_is_input_suspend();
-		break;
-	case POWER_SUPPLY_PROP_TIME_TO_FULL_NOW:
-		/* full or unknown must return 0 */
-		ret = check_cap_level(data->BAT_CAPACITY);
-		if ((ret == POWER_SUPPLY_CAPACITY_LEVEL_FULL) ||
-			(ret == POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN))
-			val->intval = 0;
-		else {
-			int q_max_now = fg_table_cust_data.fg_profile[
-						gm.battery_id].q_max;
-			int remain_ui = 100 - data->BAT_CAPACITY;
-			int remain_mah = remain_ui * q_max_now / 10;
-			int time_to_full = 0;
-
-			gauge_get_current(&fgcurrent);
-
-			if (fgcurrent != 0)
-				time_to_full = remain_mah * 3600 / fgcurrent;
-
-			bm_debug("time_to_full:%d, remain:ui:%d mah:%d, fgcurrent:%d, qmax:%d\n",
-				time_to_full, remain_ui, remain_mah,
-				fgcurrent, q_max_now);
-
-			val->intval = abs(time_to_full);
-		}
-		ret = 0;
 		break;
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		val->intval = charger_manager_is_input_suspend();
