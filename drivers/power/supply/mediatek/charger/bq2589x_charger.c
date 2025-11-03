@@ -1423,7 +1423,7 @@ static int bq2589x_charging(struct charger_device *chg_dev, bool enable)
 	else
 		ret = bq2589x_disable_charger(bq);
 
-	pr_err("%s charger %s\n", enable ? "enable" : "disable",
+	pr_debug("%s charger %s\n", enable ? "enable" : "disable",
 	       !ret ? "successfully" : "failed");
 
 	ret = bq2589x_read_byte(bq, BQ2589X_REG_03, &val);
@@ -1549,7 +1549,7 @@ static int bq2589x_set_vchg(struct charger_device *chg_dev, u32 volt)
 {
 	struct bq2589x *bq = dev_get_drvdata(&chg_dev->dev);
 
-	pr_err("charge volt = %d\n", volt);
+	pr_debug("charge volt = %d\n", volt);
 
 	return bq2589x_set_chargevolt(bq, volt / 1000);
 }
