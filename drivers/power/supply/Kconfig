@@ -624,7 +624,6 @@ config CUSTOM_BATTERY_EXTERNAL_CHANNEL
 	  If not required, select n
 	  Say Y to enable support for Customer external gauge.
 	  if unsure ,choose n.
-#/*K19A WXYFB-996 K19A secret battery bring up by miaozhichao at 2021/3/26 start*/
 config MEDIA_POWER_SUPPLY
 	bool "MediaTek Charging Driver"
 	depends on MEDIATEK_SOLUTION
@@ -637,6 +636,4 @@ config MEDIA_POWER_SUPPLY
 
 source "drivers/power/supply/mediatek/battery/Kconfig"
 source "drivers/power/supply/mediatek/charger/Kconfig"
-source "drivers/power/supply/mediatek/battery_secrete/Kconfig"
-#/*K19A WXYFB-996 K19A secret battery bring up by miaozhichao at 2021/3/26 end*/
 endif # POWER_SUPPLY

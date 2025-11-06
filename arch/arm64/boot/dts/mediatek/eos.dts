@@ -114,18 +114,7 @@
 	pinctrl-0 = <&reverse_high>;
 	pinctrl-1 = <&reverse_low>;
 };
-/*K19A WXYFB-996 K19A secret battery bring up by miaozhichao at 2021/3/26 start*/
-&onewire_gpio {
-	xiaomi,version = <1>;
-	xiaomi,ow_gpio = <&pio 30 0>;
-	status = "okay";
-};
 
-&maxim_ds28e16 {
-	maxim,version = <1>;
-	status = "okay";
-};
-/*K19A WXYFB-996 K19A secret battery bring up by miaozhichao at 2021/3/26 end*/
 /* flashlight start */
 &flashlights_led191 {
 	pinctrl-names = "default", "hw_ch0_high",
